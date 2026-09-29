@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:wallverse/services/secure_storage.dart';
 
 class AuthApiService {
-  final baseUrl = "https://wallverse-backend-q00l.onrender.com";
+  final baseUrl = "http://172.20.10.2:3001";
   //http://172.20.10.2:3001
   final secureStorage = SecureStorage();
 
@@ -20,6 +20,7 @@ class AuthApiService {
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({"name": name, "email": email, "password": password}),
     );
+    print("REGISTER RESPONSE : ${response.body}");
     return ApiResponse(statusCode: response.statusCode, data: response);
   }
 
@@ -29,6 +30,7 @@ class AuthApiService {
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({"email": email, "password": password}),
     );
+    print("LOGIN API RESPONSE : ${response.body}");
     return ApiResponse(
       statusCode: response.statusCode,
       data: jsonDecode(response.body),
@@ -51,6 +53,28 @@ class AuthApiService {
     }
     throw UnauthorizedException(
       data["message"] ?? "Session expired. Please login again.",
+    );
+  }
+
+  Future<ApiResponse> updatePassword(
+    String currentPassword,
+    String newPassword,
+  ) async {
+    final refreshToken = await secureStorage.getRefreshToken();
+    print("REFRESH TOKEN WHILE UPDATING PASSWORD : ${refreshToken}");
+    final response = await http.post(
+      Uri.parse("${baseUrl}/mobile/auth/update"),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "currentPassword": currentPassword,
+        "newPassword": newPassword,
+        "refreshToken": refreshToken,
+      }),
+    );
+    print("UPDATE PASSWORD RESPONSE: ${response.body}");
+    return ApiResponse(
+      statusCode: response.statusCode,
+      data: jsonDecode(response.body),
     );
   }
 }

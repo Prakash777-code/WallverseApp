@@ -139,4 +139,20 @@ class CommunityViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<void> downloadImage(String imageUrl) async {
+    clickLoader = true;
+    errorMessage = null;
+    notifyListeners();
+    try {
+      wallpaperRepository.downloadImage(imageUrl);
+    } on AppException catch (e) {
+      errorMessage = e.toString();
+    } catch (e) {
+      errorMessage = e.toString();
+    } finally {
+      clickLoader = false;
+      notifyListeners();
+    }
+  }
 }

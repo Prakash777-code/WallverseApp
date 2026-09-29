@@ -36,7 +36,7 @@ class FavouritesViewModel extends ChangeNotifier {
   }
 
   Future<void> loadMoreFavouriteWallpapers() async {
-    if (isLoading) {
+    if (isLoading || isLoadingMore) {
       return;
     }
     if (favouriteWallpapers.length >= totalFavourites) {

@@ -102,6 +102,48 @@ class _CommunityScreenState extends State<CommunityScreen> {
                             // Full-size image
                             Positioned.fill(
                               child: GestureDetector(
+                                onLongPress: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return AlertDialog(
+                                        title: const Text('Download Image'),
+                                        content: const Text(
+                                          'Do you want to download this image?',
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                            },
+                                            child: const Text('Cancel'),
+                                          ),
+                                          TextButton(
+                                            onPressed: () async {
+                                              communityViewModel.downloadImage(
+                                                wallpaper.imageUrl,
+                                              );
+                                              Navigator.pop(context);
+                                              if (communityViewModel
+                                                      .errorMessage ==
+                                                  null) {
+                                                Fluttertoast.showToast(
+                                                  msg: "Downloaded",
+                                                );
+                                              } else {
+                                                Fluttertoast.showToast(
+                                                  msg: communityViewModel
+                                                      .errorMessage!,
+                                                );
+                                              }
+                                            },
+                                            child: const Text('Download'),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                },
                                 onDoubleTap: () async {
                                   if (!wallpaper.isLiked) {
                                     await communityViewModel.likePost(

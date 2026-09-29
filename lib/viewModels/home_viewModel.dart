@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:wallverse/exceptions/app_exceptions.dart';
-import 'package:wallverse/models/community.dart';
 import 'package:wallverse/models/favourites.dart';
 import 'package:wallverse/models/wallpaper.dart';
 import 'package:wallverse/models/wallpaper_response.dart';
 import 'package:wallverse/repositories/wallpaper_repository.dart';
+import 'package:wallverse/utils/helper.dart';
 
 class HomeViewmodel extends ChangeNotifier {
   final wallpaperRepository = WallpaperRepository();
@@ -12,6 +12,7 @@ class HomeViewmodel extends ChangeNotifier {
   List<Favourites> favouriteWallpapers = [];
   bool isLoading = false;
   bool clickLoader = false;
+  bool isDownloading = false;
   String? errorMessage;
   bool retry = false;
   int limit = 16;
@@ -19,6 +20,7 @@ class HomeViewmodel extends ChangeNotifier {
   bool isLoadingMore = false;
   int totalResults = 0;
   String Query = "nature";
+  final helper = Helper();
 
   Future<void> getWallpapers(String query) async {
     isLoading = true;
@@ -101,6 +103,22 @@ class HomeViewmodel extends ChangeNotifier {
       errorMessage = e.toString();
     } finally {
       clickLoader = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> downloadImage(String imageUrl) async {
+    isDownloading = true;
+    errorMessage = null;
+    notifyListeners();
+    try {
+      wallpaperRepository.downloadImage(imageUrl);
+    } on AppException catch (e) {
+      errorMessage = e.toString();
+    } catch (e) {
+      errorMessage = e.toString();
+    } finally {
+      isDownloading = false;
       notifyListeners();
     }
   }

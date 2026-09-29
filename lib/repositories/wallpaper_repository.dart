@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:gal/gal.dart';
+import 'package:http/http.dart' as http;
 import 'package:wallverse/exceptions/app_exceptions.dart';
 import 'package:wallverse/responses/api_response.dart';
 import 'package:wallverse/services/secure_storage.dart';
@@ -138,6 +140,26 @@ class WallpaperRepository {
       return response;
     } on AppException {
       rethrow;
+    }
+  }
+
+  Future<String> downloadImage(String imageUrl) async {
+    try {
+      final response = await http.get(Uri.parse(imageUrl));
+      final file = File('${Directory.systemTemp.path}/image.jpg');
+      await file.writeAsBytes(response.bodyBytes);
+      if (!await Gal.hasAccess()) {
+        await Gal.requestAccess();
+      }
+      if (await Gal.hasAccess()) {
+        await Gal.putImage(file.path);
+        print("Downloaded");
+        return "Downloaded";
+      }
+      return "Permission denied";
+    } catch (e) {
+      print(e);
+      return e.toString();
     }
   }
 }

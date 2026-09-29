@@ -12,7 +12,7 @@ import 'package:wallverse/services/auth_api_service.dart';
 import 'package:wallverse/services/secure_storage.dart';
 
 class WallpapersApiservice {
-  final baseUrl = "https://wallverse-backend-q00l.onrender.com";
+  final baseUrl = "http://172.20.10.2:3001";
   //https://wallverse-backend-q00l.onrender.com
   final authApiService = AuthApiService();
   final secureStorage = SecureStorage();
@@ -44,6 +44,7 @@ class WallpapersApiservice {
         },
       );
     }
+    print("PEXELS RESPONSE :${response.body}");
     final data = jsonDecode(response.body);
     final wallpaperResponse = WallpaperResponse.fromJson(data);
     return ApiResponse(
@@ -119,6 +120,7 @@ class WallpapersApiservice {
         },
       );
     }
+    print("GET FAVOURITES RESPONSE: ${response.body}");
     final data = jsonDecode(response.body);
     final favouriteWallpapers = GetFavouritesResponse.fromJson(data);
     return ApiResponse(
@@ -207,6 +209,7 @@ class WallpapersApiservice {
         body: jsonEncode({"prompt": prompt}),
       );
     }
+    print("AI API RESPONSE: ${res.body}");
     return ApiResponse(statusCode: res.statusCode, data: jsonDecode(res.body));
   }
 
@@ -259,9 +262,11 @@ class WallpapersApiservice {
         },
       );
     }
+    final body = jsonDecode(res.body);
+    print(body);
     return ApiResponse(
       statusCode: res.statusCode,
-      data: Profile.fromJson(jsonDecode(res.body)),
+      data: Profile.fromJson(body["data"]),
     );
   }
 

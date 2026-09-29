@@ -7,6 +7,7 @@ class AuthViewmodel extends ChangeNotifier {
   bool isLoading = false;
   String? errorMessage;
   bool isLoggedIn = false;
+  bool passwordChangeRequired = false;
 
   Future<void> register(String name, String email, String password) async {
     isLoading = true;
@@ -30,10 +31,17 @@ class AuthViewmodel extends ChangeNotifier {
     notifyListeners();
     try {
       await authRepository.login(email, password);
-      isLoggedIn = true;
+      if (authRepository.passwordChangeRequired) {
+        passwordChangeRequired = true;
+        isLoggedIn = false;
+      } else {
+        passwordChangeRequired = false;
+        isLoggedIn = true;
+      }
     } on AppException catch (e) {
       errorMessage = e.toString();
     } catch (e) {
+      isLoggedIn = false;
       errorMessage = e.toString();
     } finally {
       isLoading = false;
@@ -55,6 +63,25 @@ class AuthViewmodel extends ChangeNotifier {
       isLoading = false;
       errorMessage = e.toString();
     } finally {
+      notifyListeners();
+    }
+  }
+
+  Future<void> updatePassword(
+    String currentPassword,
+    String newPassword,
+  ) async {
+    isLoading = true;
+    errorMessage = null;
+    notifyListeners();
+    try {
+      await authRepository.updatePassword(currentPassword, newPassword);
+    } on AppException catch (e) {
+      errorMessage = e.toString();
+    } catch (e) {
+      errorMessage = e.toString();
+    } finally {
+      isLoading = false;
       notifyListeners();
     }
   }

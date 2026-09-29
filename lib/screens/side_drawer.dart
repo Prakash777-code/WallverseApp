@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:wallverse/screens/ai_screen.dart';
 import 'package:wallverse/screens/community_screen.dart';
-import 'package:wallverse/screens/downloads_screen.dart';
 import 'package:wallverse/screens/favourite_screen.dart';
 import 'package:wallverse/screens/home_screen.dart';
 import 'package:wallverse/screens/profile_screen.dart';
 import 'package:wallverse/screens/upload_screen.dart';
+import 'package:wallverse/viewModels/favourites_view_model.dart';
 
 class SideDrawer extends StatelessWidget {
   final VoidCallback onClose;
 
-  const SideDrawer({super.key, required this.onClose});
+  SideDrawer({super.key, required this.onClose});
+  final favouriteViewModel = FavouritesViewModel();
 
   @override
   Widget build(BuildContext context) {
@@ -110,7 +111,9 @@ class SideDrawer extends StatelessWidget {
                               return const HomeScreen();
                             },
                           ),
-                        );
+                        ).then((value) async {
+                          await favouriteViewModel.getFavouriteWallpaper();
+                        });
                       },
                     ),
 
@@ -126,7 +129,9 @@ class SideDrawer extends StatelessWidget {
                               return const FavouriteScreen();
                             },
                           ),
-                        );
+                        ).then((value) async {
+                          await favouriteViewModel.getFavouriteWallpaper();
+                        });
                       },
                     ),
 
@@ -142,7 +147,9 @@ class SideDrawer extends StatelessWidget {
                               return const AiScreen();
                             },
                           ),
-                        );
+                        ).then((value) async {
+                          await favouriteViewModel.getFavouriteWallpaper();
+                        });
                       },
                     ),
                     _drawerItem(
@@ -157,7 +164,9 @@ class SideDrawer extends StatelessWidget {
                               return const CommunityScreen();
                             },
                           ),
-                        );
+                        ).then((value) async {
+                          await favouriteViewModel.getFavouriteWallpaper();
+                        });
                       },
                     ),
 
@@ -173,7 +182,9 @@ class SideDrawer extends StatelessWidget {
                               return const UploadWallpaperScreen();
                             },
                           ),
-                        );
+                        ).then((value) async {
+                          await favouriteViewModel.getFavouriteWallpaper();
+                        });
                       },
                     ),
 
@@ -189,7 +200,9 @@ class SideDrawer extends StatelessWidget {
                               return const ProfileScreen();
                             },
                           ),
-                        );
+                        ).then((value) async {
+                          await favouriteViewModel.getFavouriteWallpaper();
+                        });
                       },
                     ),
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wallverse/screens/login_screen.dart';
+import 'package:wallverse/utils/helper.dart';
 import 'package:wallverse/viewModels/auth_view_model.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
@@ -19,6 +20,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final nameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  final helper = Helper();
 
   @override
   void initState() {
@@ -162,11 +164,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         if (value == null || value.isEmpty) {
                           return "Password is required";
                         }
-
-                        if (value.length < 6) {
-                          return "Password must be at least 6 characters";
+                        final res = helper.checkPassword(value);
+                        if (res != "Strong password") {
+                          return res;
                         }
-
                         return null;
                       },
                     ),

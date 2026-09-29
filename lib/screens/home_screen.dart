@@ -4,6 +4,7 @@ import 'package:wallverse/screens/full_screen_wallpaper.dart';
 import 'package:wallverse/screens/login_screen.dart';
 import 'package:wallverse/screens/profile_screen.dart';
 import 'package:wallverse/screens/side_drawer.dart';
+import 'package:wallverse/utils/helper.dart';
 import 'package:wallverse/viewModels/auth_view_model.dart';
 import 'package:wallverse/viewModels/home_viewModel.dart';
 
@@ -21,6 +22,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final homeViewModel = HomeViewmodel();
   final authViewModel = AuthViewmodel();
   final scrollController = ScrollController();
+  final helper = Helper();
 
   void searchWallpapers() {
     String query = searchController.text.trim();
@@ -239,9 +241,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       itemCount: homeViewModel.wallpapers.length,
                       itemBuilder: (context, index) {
                         final wallpaper = homeViewModel.wallpapers[index];
-
-                        bool isFavourite = false;
-
                         return Container(
                           decoration: BoxDecoration(
                             color: const Color(0xFF09090B),
@@ -255,6 +254,48 @@ class _HomeScreenState extends State<HomeScreen> {
                             children: [
                               Positioned.fill(
                                 child: GestureDetector(
+                                  onLongPress: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) {
+                                        return AlertDialog(
+                                          title: const Text('Download Image'),
+                                          content: const Text(
+                                            'Do you want to download this image?',
+                                          ),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () {
+                                                Navigator.pop(context);
+                                              },
+                                              child: const Text('Cancel'),
+                                            ),
+                                            TextButton(
+                                              onPressed: () async {
+                                                homeViewModel.downloadImage(
+                                                  wallpaper.imageUrl,
+                                                );
+                                                Navigator.pop(context);
+                                                if (authViewModel
+                                                        .errorMessage ==
+                                                    null) {
+                                                  Fluttertoast.showToast(
+                                                    msg: "Downloaded",
+                                                  );
+                                                } else {
+                                                  Fluttertoast.showToast(
+                                                    msg: homeViewModel
+                                                        .errorMessage!,
+                                                  );
+                                                }
+                                              },
+                                              child: const Text('Download'),
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    );
+                                  },
                                   onTap: () {
                                     Navigator.push(
                                       context,
@@ -340,8 +381,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                 ),
                               ),
-
-                              // FAVOURITE BUTTON
                               Positioned(
                                 top: 10,
                                 right: 10,
@@ -352,11 +391,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                       wallpaper.imageUrl,
                                       wallpaper.photographer,
                                     );
-
                                     if (homeViewModel.errorMessage == null) {
                                       Fluttertoast.showToast(
                                         msg: "Added to favourites",
                                       );
+                                      wallpaper.isFavourite = true;
                                     } else {
                                       Fluttertoast.showToast(
                                         msg: homeViewModel.errorMessage!,
@@ -376,12 +415,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                     ),
                                     child: Icon(
-                                      isFavourite
-                                          ? Icons.favorite
-                                          : Icons.favorite,
-                                      color: isFavourite
+                                      wallpaper.isFavourite
+                                          ? Icons.bookmark
+                                          : Icons.bookmark_border,
+                                      color: wallpaper.isFavourite
                                           ? const Color(0xFFA855F7)
-                                          : Colors.red,
+                                          : Colors.white,
                                       size: 20,
                                     ),
                                   ),

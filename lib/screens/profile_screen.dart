@@ -294,7 +294,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                               await profileViewModel.deletePost(
                                                 uploads.id,
                                               );
-
                                               if (profileViewModel
                                                       .errorMessage ==
                                                   null) {

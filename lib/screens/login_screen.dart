@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:wallverse/screens/chnage_password_screen.dart';
 import 'package:wallverse/screens/home_screen.dart';
 import 'package:wallverse/screens/register_screen.dart';
 import 'package:wallverse/viewModels/auth_view_model.dart';
@@ -151,9 +152,43 @@ class _LoginScreenState extends State<LoginScreen> {
 
                                   await authViewModel.login(
                                     emailController.text,
-                                    passwordController.text,
+                                    passwordController.text.trim(),
                                   );
                                   if (!mounted) {
+                                    return;
+                                  }
+                                  if (authViewModel.passwordChangeRequired) {
+                                    await showDialog(
+                                      context: context,
+                                      builder: (BuildContext dialogContext) =>
+                                          AlertDialog(
+                                            title: const Text(
+                                              'Urgent action required!',
+                                            ),
+                                            content: const Text(
+                                              'For security reasons, you need to change your password before continuing.',
+                                            ),
+                                            actions: <Widget>[
+                                              TextButton(
+                                                onPressed: () {
+                                                  Navigator.pop(dialogContext);
+                                                },
+                                                child: const Text('OK'),
+                                              ),
+                                            ],
+                                          ),
+                                    );
+
+                                    if (!context.mounted) return;
+
+                                    Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const ChangePasswordScreen(),
+                                      ),
+                                    );
+
                                     return;
                                   }
                                   if (authViewModel.errorMessage == null) {

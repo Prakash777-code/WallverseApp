@@ -38,22 +38,25 @@ class _AiStudioScreenState extends State<AiScreen> {
       Fluttertoast.showToast(msg: "Prompt is required to generate image");
       return;
     }
-
     setState(() {
       loading = true;
       generating = true;
       imageUrl = null;
     });
-
     try {
       final url = await aiViewModel.generateWallpaper(
         promptController.text.trim(),
       );
-
-      setState(() {
-        imageUrl = url;
+      if (aiViewModel.errorMessage == null) {
+        setState(() {
+          imageUrl = url;
+          generating = false;
+        });
+      } else {
+        Fluttertoast.showToast(msg: aiViewModel.errorMessage!);
+        loading = false;
         generating = false;
-      });
+      }
     } finally {
       setState(() {
         loading = false;

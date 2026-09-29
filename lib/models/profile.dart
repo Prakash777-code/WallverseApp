@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:wallverse/models/uploaded_wallpapers.dart';
 
 class Profile {

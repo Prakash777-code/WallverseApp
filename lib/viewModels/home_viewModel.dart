@@ -22,34 +22,6 @@ class HomeViewmodel extends ChangeNotifier {
   String Query = "nature";
   final helper = Helper();
 
-  Future<void> getWallpapers(String query) async {
-    isLoading = true;
-    errorMessage = null;
-    retry = false;
-    currentPage = 1;
-    notifyListeners();
-
-    try {
-      final response = await wallpaperRepository.getWallpapers(
-        Query = query,
-        1,
-        limit,
-      );
-      final wallpaperResponse = response.data as WallpaperResponse;
-      wallpapers = wallpaperResponse.wallpaper;
-      totalResults = wallpaperResponse.totalResults;
-    } on AppException catch (e) {
-      errorMessage = e.toString();
-      retry = true;
-    } catch (e) {
-      errorMessage = e.toString();
-      retry = true;
-    } finally {
-      isLoading = false;
-      notifyListeners();
-    }
-  }
-
   Future<void> loadMoreWallpapers() async {
     if (isLoadingMore) {
       return;
@@ -119,6 +91,34 @@ class HomeViewmodel extends ChangeNotifier {
       errorMessage = e.toString();
     } finally {
       isDownloading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> searchWithDebounce(String query) async {
+    isLoading = true;
+    errorMessage = null;
+    retry = false;
+    currentPage = 1;
+    notifyListeners();
+    try {
+      final response = await wallpaperRepository.getWallpapers(
+        Query = query,
+        1,
+        limit,
+      );
+      final wallpaperResponse = response.data as WallpaperResponse;
+      wallpapers = wallpaperResponse.wallpaper;
+      print("DEBOUNCE WALLPAPERS :${wallpapers}");
+      totalResults = wallpaperResponse.totalResults;
+    } on AppException catch (e) {
+      errorMessage = e.toString();
+      retry = true;
+    } catch (e) {
+      errorMessage = e.toString();
+      retry = true;
+    } finally {
+      isLoading = false;
       notifyListeners();
     }
   }

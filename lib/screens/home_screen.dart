@@ -4,6 +4,7 @@ import 'package:wallverse/screens/full_screen_wallpaper.dart';
 import 'package:wallverse/screens/login_screen.dart';
 import 'package:wallverse/screens/profile_screen.dart';
 import 'package:wallverse/screens/side_drawer.dart';
+import 'package:wallverse/utils/debounce.dart';
 import 'package:wallverse/utils/helper.dart';
 import 'package:wallverse/viewModels/auth_view_model.dart';
 import 'package:wallverse/viewModels/home_viewModel.dart';
@@ -23,20 +24,23 @@ class _HomeScreenState extends State<HomeScreen> {
   final authViewModel = AuthViewmodel();
   final scrollController = ScrollController();
   final helper = Helper();
+  final Debouncer _debouncer = Debouncer(milliseconds: 500);
 
-  void searchWallpapers() {
-    String query = searchController.text.trim();
+  void debounceSerach(String query) async {
     if (query.isEmpty) {
       return;
     }
-    print('Searching for: $query');
-    homeViewModel.getWallpapers(query);
+    print("CALLING DEBOUNCE SEARCH");
+    homeViewModel.searchWithDebounce(query);
   }
 
   @override
   void initState() {
     super.initState();
     homeViewModel.addListener(wallpaperListener);
+    searchController.addListener(() {
+      _debouncer.run(() => debounceSerach(searchController.text.trim()));
+    });
     scrollController.addListener(() {
       if (scrollController.position.pixels >=
           scrollController.position.maxScrollExtent * 0.7) {
@@ -70,7 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
       );
       return;
     }
-    await homeViewModel.getWallpapers("nature");
+    await homeViewModel.searchWithDebounce("nature");
   }
 
   Widget filterButton(String title) {
@@ -78,7 +82,7 @@ class _HomeScreenState extends State<HomeScreen> {
       margin: const EdgeInsets.only(right: 10),
       child: ElevatedButton(
         onPressed: () {
-          homeViewModel.getWallpapers(title.toString().trim());
+          homeViewModel.searchWithDebounce(title.toString().trim());
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF18181B),
@@ -101,6 +105,7 @@ class _HomeScreenState extends State<HomeScreen> {
     homeViewModel.dispose();
     searchController.dispose();
     scrollController.dispose();
+    _debouncer.dispose();
     super.dispose();
   }
 
@@ -175,36 +180,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                   vertical: 14,
                                 ),
                               ),
-                              onSubmitted: (value) {
-                                searchWallpapers();
-                              },
                             ),
                           ),
                         ),
 
                         const SizedBox(width: 10),
-
-                        SizedBox(
-                          height: 50,
-                          child: ElevatedButton(
-                            onPressed: searchWallpapers,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF9333EA),
-                              foregroundColor: Colors.white,
-                              elevation: 0,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 18,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                            ),
-                            child: const Text(
-                              'Search',
-                              style: TextStyle(fontWeight: FontWeight.w600),
-                            ),
-                          ),
-                        ),
                       ],
                     ),
                   ),

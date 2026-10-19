@@ -162,4 +162,14 @@ class WallpaperRepository {
       return e.toString();
     }
   }
+
+  Future<ApiResponse> getFavouriteIds(List<int> wallpaperIds) async {
+    try {
+      final res = await wallpaperApiService.getFavouriteIds(wallpaperIds);
+      helper.handleRequest(res);
+      return res;
+    } on AppException {
+      rethrow;
+    }
+  }
 }

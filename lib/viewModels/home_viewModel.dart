@@ -10,6 +10,7 @@ class HomeViewmodel extends ChangeNotifier {
   final wallpaperRepository = WallpaperRepository();
   List<Wallpaper> wallpapers = [];
   List<Favourites> favouriteWallpapers = [];
+  Set<int> favouritesIds = {};
   bool isLoading = false;
   bool clickLoader = false;
   bool isDownloading = false;
@@ -40,6 +41,11 @@ class HomeViewmodel extends ChangeNotifier {
         limit,
       );
       final response = moreWallpapers.data as WallpaperResponse;
+      final wallpaperIds = response.wallpaper
+          .map((id) => id.wallpaperId)
+          .toList();
+      final res = await wallpaperRepository.getFavouriteIds(wallpaperIds);
+      favouritesIds.addAll(Set<int>.from(res.data["data"]));
       wallpapers.addAll(response.wallpaper);
       currentPage = nextPage;
     } on AppException catch (e) {
@@ -69,6 +75,27 @@ class HomeViewmodel extends ChangeNotifier {
         imageUrl,
         photographer,
       );
+      favouritesIds.add(wallpaperId);
+    } on AppException catch (e) {
+      errorMessage = e.toString();
+    } catch (e) {
+      errorMessage = e.toString();
+    } finally {
+      clickLoader = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> removeFromFavourites(int wallpaperId) async {
+    if (clickLoader) {
+      return;
+    }
+    clickLoader = true;
+    errorMessage = null;
+    notifyListeners();
+    try {
+      await wallpaperRepository.removeFromFavourites(wallpaperId);
+      favouritesIds.remove(wallpaperId);
     } on AppException catch (e) {
       errorMessage = e.toString();
     } catch (e) {
@@ -96,6 +123,8 @@ class HomeViewmodel extends ChangeNotifier {
   }
 
   Future<void> searchWithDebounce(String query) async {
+    print("QUERY IN VIEW MODEL :${query}");
+
     isLoading = true;
     errorMessage = null;
     retry = false;
@@ -109,7 +138,13 @@ class HomeViewmodel extends ChangeNotifier {
       );
       final wallpaperResponse = response.data as WallpaperResponse;
       wallpapers = wallpaperResponse.wallpaper;
-      print("DEBOUNCE WALLPAPERS :${wallpapers}");
+      final wallpaperId = wallpapers.map((id) => id.wallpaperId).toList();
+      print("SENDING WALLPAPER ID :${wallpaperId}");
+      final res = await wallpaperRepository.getFavouriteIds(wallpaperId);
+      print("GET FAVOURITES ID RESPONSE : ${res.data}");
+      favouritesIds = Set<int>.from(res.data["data"]);
+      print("STORED FAVOURITES : $favouritesIds");
+      print("CHECK ID : ${favouritesIds.contains(12377231)}");
       totalResults = wallpaperResponse.totalResults;
     } on AppException catch (e) {
       errorMessage = e.toString();
@@ -120,6 +155,14 @@ class HomeViewmodel extends ChangeNotifier {
     } finally {
       isLoading = false;
       notifyListeners();
+    }
+  }
+
+  void toggleFavourite(int wallpaperId) {
+    if (favouritesIds.contains(wallpaperId)) {
+      favouritesIds.remove(wallpaperId);
+    } else {
+      favouritesIds.add(wallpaperId);
     }
   }
 }

@@ -57,4 +57,25 @@ class Helper {
         return "Strong password";
     }
   }
+
+   String getTimeAgo(String createdAt) {
+    final created = DateTime.parse(createdAt);
+    final difference = DateTime.now().difference(created);
+
+    if (difference.inMinutes < 1) {
+      return "just now";
+    } else if (difference.inHours < 1) {
+      return "${difference.inMinutes}m ago";
+    } else if (difference.inDays < 1) {
+      return "${difference.inHours}h ago";
+    } else if (difference.inDays < 7) {
+      return "${difference.inDays}d ago";
+    } else if (difference.inDays < 30) {
+      return "${difference.inDays ~/ 7}w ago";
+    } else if (difference.inDays < 365) {
+      return "${difference.inDays ~/ 30}mo ago";
+    } else {
+      return "${difference.inDays ~/ 365}y ago";
+    }
+  }
 }

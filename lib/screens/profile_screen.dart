@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
@@ -230,30 +231,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ),
                               );
                             },
-                            child: Image.network(
-                              uploads.imageUrl,
+                            child: CachedNetworkImage(
+                              imageUrl: uploads.imageUrl,
                               fit: BoxFit.cover,
-                              loadingBuilder:
-                                  (context, child, loadingProgress) {
-                                    if (loadingProgress == null) {
-                                      return child;
-                                    }
-
-                                    return const Center(
-                                      child: CircularProgressIndicator(
-                                        color: Color(0xFFA855F7),
-                                      ),
-                                    );
-                                  },
-                              errorBuilder: (context, error, stackTrace) {
-                                return const Center(
-                                  child: Icon(
-                                    Icons.broken_image_outlined,
-                                    color: Color(0xFF71717A),
-                                    size: 35,
+                              placeholder: (context, url) => const Center(
+                                child: CircularProgressIndicator(
+                                  color: Color(0xFFA855F7),
+                                ),
+                              ),
+                              errorWidget: (context, url, error) =>
+                                  const Center(
+                                    child: Icon(
+                                      Icons.broken_image_outlined,
+                                      color: Color(0xFF71717A),
+                                      size: 35,
+                                    ),
                                   ),
-                                );
-                              },
                             ),
                           ),
                         ),

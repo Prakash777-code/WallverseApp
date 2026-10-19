@@ -182,6 +182,7 @@ class WallpapersApiservice {
         },
       );
     }
+    print("COMMUNITY API: ${res.body}");
     final data = jsonDecode(res.body);
     final communityWallpapers = CommunityResponse.fromJson(data);
     return ApiResponse(statusCode: res.statusCode, data: communityWallpapers);
@@ -345,6 +346,36 @@ class WallpapersApiservice {
     return ApiResponse(
       statusCode: res.statusCode,
       data: (jsonDecode(res.body)),
+    );
+  }
+
+  Future<ApiResponse> getFavouriteIds(List<int> wallpaperIds) async {
+    print("WALLPAPER IDS IN API :${wallpaperIds}");
+    var accessToken = await secureStorage.getAccessToken();
+    var response = await http.post(
+      Uri.parse("${baseUrl}/mobile/wallpaper/favourites/id"),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $accessToken",
+      },
+      body: jsonEncode({"ids": wallpaperIds}),
+    );
+    if (response.statusCode == 401) {
+      accessToken = await authApiService.refreshToken();
+      await secureStorage.saveAccessToken(accessToken);
+      response = await http.post(
+        Uri.parse("${baseUrl}/mobile/wallpaper/favourites/id"),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $accessToken",
+        },
+        body: jsonEncode({"ids": wallpaperIds}),
+      );
+    }
+    print("GET FAVOURITES ID RESPONSE : ${response.body}");
+    return ApiResponse(
+      statusCode: response.statusCode,
+      data: jsonDecode(response.body),
     );
   }
 }

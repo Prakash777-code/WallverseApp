@@ -1,5 +1,7 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:wallverse/screens/full_screen_wallpaper.dart';
 import 'package:wallverse/screens/side_drawer.dart';
 import 'package:wallverse/viewModels/ai_view_model.dart';
 
@@ -299,28 +301,21 @@ class _AiStudioScreenState extends State<AiScreen> {
                               color: Color(0xFF7C4DFF),
                             ),
                           )
-                        : Image.network(
-                            imageUrl!,
+                        : CachedNetworkImage(
+                            imageUrl: imageUrl!,
                             fit: BoxFit.cover,
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) {
-                                return child;
-                              }
-
-                              return const Center(
-                                child: CircularProgressIndicator(
-                                  color: Color(0xFF7C4DFF),
-                                ),
-                              );
-                            },
-                            errorBuilder: (context, error, stackTrace) {
-                              return const Center(
-                                child: Text(
-                                  "Failed to load image",
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                              );
-                            },
+                            placeholder: (context, url) => const Center(
+                              child: CircularProgressIndicator(
+                                color: Color(0xFFA855F7),
+                              ),
+                            ),
+                            errorWidget: (context, url, error) => const Center(
+                              child: Icon(
+                                Icons.broken_image_outlined,
+                                color: Color(0xFF71717A),
+                                size: 35,
+                              ),
+                            ),
                           ),
                   ),
                 ),
@@ -364,7 +359,13 @@ class _AiStudioScreenState extends State<AiScreen> {
                     Expanded(
                       child: OutlinedButton.icon(
                         onPressed: () {
-                          // Open image
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  FullScreenWallpaper(imageUrl: imageUrl!),
+                            ),
+                          );
                         },
                         icon: const Icon(Icons.open_in_new, size: 18),
                         label: const Text("Open Image"),

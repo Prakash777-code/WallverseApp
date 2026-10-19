@@ -1,7 +1,9 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:wallverse/screens/full_screen_wallpaper.dart';
 import 'package:wallverse/screens/login_screen.dart';
+import 'package:wallverse/screens/notification_screen.dart';
 import 'package:wallverse/screens/profile_screen.dart';
 import 'package:wallverse/screens/side_drawer.dart';
 import 'package:wallverse/utils/debounce.dart';
@@ -30,7 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (query.isEmpty) {
       return;
     }
-    print("CALLING DEBOUNCE SEARCH");
+    print("CALLING DEBOUNCE SEARCH ${query}");
     homeViewModel.searchWithDebounce(query);
   }
 
@@ -142,6 +144,18 @@ class _HomeScreenState extends State<HomeScreen> {
             },
             icon: const Icon(Icons.person_2_outlined),
           ),
+
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const NotificationScreen(),
+                ),
+              );
+            },
+            icon: const Icon(Icons.favorite_border),
+          ),
         ],
       ),
 
@@ -218,9 +232,23 @@ class _HomeScreenState extends State<HomeScreen> {
                             mainAxisSpacing: 14,
                             childAspectRatio: 0.68,
                           ),
-                      itemCount: homeViewModel.wallpapers.length,
+                      itemCount: homeViewModel.wallpapers.length + 1,
                       itemBuilder: (context, index) {
+                        if (index == homeViewModel.wallpapers.length) {
+                          if (homeViewModel.isLoadingMore) {
+                            return const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 15),
+                              child: Center(child: CircularProgressIndicator()),
+                            );
+                          }
+                          return const SizedBox(height: 15);
+                        }
                         final wallpaper = homeViewModel.wallpapers[index];
+                        final isFavourite = homeViewModel.favouritesIds
+                            .contains(wallpaper.wallpaperId);
+                        print(
+                          "IS FAVOURITE :${wallpaper.wallpaperId} - ${isFavourite}",
+                        );
                         return Container(
                           decoration: BoxDecoration(
                             color: const Color(0xFF09090B),
@@ -229,7 +257,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           clipBehavior: Clip.antiAlias,
 
-                          // IMAGE NOW TAKES THE ENTIRE CARD
                           child: Stack(
                             children: [
                               Positioned.fill(
@@ -287,30 +314,22 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                     );
                                   },
-                                  child: Image.network(
-                                    wallpaper.imageUrl,
+                                  child: CachedNetworkImage(
+                                    imageUrl: wallpaper.imageUrl,
                                     fit: BoxFit.cover,
-                                    loadingBuilder:
-                                        (context, child, loadingProgress) {
-                                          if (loadingProgress == null) {
-                                            return child;
-                                          }
-
-                                          return const Center(
-                                            child: CircularProgressIndicator(
-                                              color: Color(0xFFA855F7),
-                                            ),
-                                          );
-                                        },
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return const Center(
-                                        child: Icon(
-                                          Icons.broken_image_outlined,
-                                          color: Color(0xFF71717A),
-                                          size: 35,
+                                    placeholder: (context, url) => const Center(
+                                      child: CircularProgressIndicator(
+                                        color: Color(0xFFA855F7),
+                                      ),
+                                    ),
+                                    errorWidget: (context, url, error) =>
+                                        const Center(
+                                          child: Icon(
+                                            Icons.broken_image_outlined,
+                                            color: Color(0xFF71717A),
+                                            size: 35,
+                                          ),
                                         ),
-                                      );
-                                    },
                                   ),
                                 ),
                               ),
@@ -366,17 +385,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                 right: 10,
                                 child: GestureDetector(
                                   onTap: () async {
-                                    await homeViewModel.addToFavourite(
-                                      wallpaper.wallpaperId,
-                                      wallpaper.imageUrl,
-                                      wallpaper.photographer,
-                                    );
-                                    if (homeViewModel.errorMessage == null) {
-                                      Fluttertoast.showToast(
-                                        msg: "Added to favourites",
+                                    if (isFavourite) {
+                                      await homeViewModel.removeFromFavourites(
+                                        wallpaper.wallpaperId,
                                       );
-                                      wallpaper.isFavourite = true;
                                     } else {
+                                      await homeViewModel.addToFavourite(
+                                        wallpaper.wallpaperId,
+                                        wallpaper.imageUrl,
+                                        wallpaper.photographer,
+                                      );
+                                    }
+                                    if (homeViewModel.errorMessage != null) {
                                       Fluttertoast.showToast(
                                         msg: homeViewModel.errorMessage!,
                                       );
@@ -395,10 +415,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                     ),
                                     child: Icon(
-                                      wallpaper.isFavourite
+                                      isFavourite
                                           ? Icons.bookmark
                                           : Icons.bookmark_border,
-                                      color: wallpaper.isFavourite
+                                      color: isFavourite
                                           ? const Color(0xFFA855F7)
                                           : Colors.white,
                                       size: 20,

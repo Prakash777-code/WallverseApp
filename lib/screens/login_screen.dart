@@ -15,23 +15,16 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final authViewModel = AuthViewmodel();
   final formKey = GlobalKey<FormState>();
+  final authViewModel = AuthViewmodel();
+
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
-  @override
-  void initState() {
-    super.initState();
-
-    authViewModel.addListener(() {
-      setState(() {});
-    });
-  }
+  bool obscurePassword = true;
 
   @override
   void dispose() {
-    authViewModel.removeListener(() {});
     emailController.dispose();
     passwordController.dispose();
     super.dispose();
@@ -39,239 +32,242 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF12051F), Color(0xFF24103D), Color(0xFF3B1766)],
-          ),
-        ),
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 28),
-              child: Form(
-                key: formKey,
-                child: Column(
-                  children: [
-                    const Icon(
-                      Icons.wallpaper,
-                      size: 70,
-                      color: Color(0xFFB388FF),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    const Text(
-                      "WallVerse",
-                      style: TextStyle(
-                        fontSize: 34,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    const Text(
-                      "Welcome back",
-                      style: TextStyle(fontSize: 16, color: Color(0xFFD1C4E9)),
-                    ),
-
-                    const SizedBox(height: 40),
-
-                    TextFormField(
-                      controller: emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        hintText: "Email",
-                        hintStyle: const TextStyle(color: Color(0xFFB39DDB)),
-                        prefixIcon: const Icon(
-                          Icons.email_outlined,
-                          color: Color(0xFFB388FF),
-                        ),
-                        filled: true,
-                        fillColor: const Color(0xFF1B0B2E),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: BorderSide.none,
+    return ListenableBuilder(
+      listenable: authViewModel,
+      builder: (context, child) {
+        return Scaffold(
+          backgroundColor: const Color(0xFF241039),
+          body: SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 80),
+                      const Text(
+                        'Wallverse',
+                        style: TextStyle(
+                          fontSize: 42,
+                          fontWeight: FontWeight.w600,
+                          fontFamily: 'cursive',
+                          color: Colors.white,
                         ),
                       ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return "Email is required";
-                        }
-
-                        return null;
-                      },
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    TextFormField(
-                      controller: passwordController,
-                      obscureText: true,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        hintText: "Password",
-                        hintStyle: const TextStyle(color: Color(0xFFB39DDB)),
-                        prefixIcon: const Icon(
-                          Icons.lock_outline,
-                          color: Color(0xFFB388FF),
-                        ),
-                        filled: true,
-                        fillColor: const Color(0xFF1B0B2E),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: BorderSide.none,
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return "Password is required";
-                        }
-
-                        return null;
-                      },
-                    ),
-
-                    const SizedBox(height: 28),
-
-                    SizedBox(
-                      width: double.infinity,
-                      height: 55,
-                      child: ElevatedButton(
-                        onPressed: authViewModel.isLoading
-                            ? null
-                            : () async {
-                                if (formKey.currentState!.validate()) {
-                                  print("Form is valid");
-
-                                  await authViewModel.login(
-                                    emailController.text,
-                                    passwordController.text.trim(),
-                                  );
-                                  if (!mounted) {
-                                    return;
-                                  }
-                                  if (authViewModel.passwordChangeRequired) {
-                                    await showDialog(
-                                      context: context,
-                                      builder: (BuildContext dialogContext) =>
-                                          AlertDialog(
-                                            title: const Text(
-                                              'Urgent action required!',
-                                            ),
-                                            content: const Text(
-                                              'For security reasons, you need to change your password before continuing.',
-                                            ),
-                                            actions: <Widget>[
-                                              TextButton(
-                                                onPressed: () {
-                                                  Navigator.pop(dialogContext);
-                                                },
-                                                child: const Text('OK'),
-                                              ),
-                                            ],
-                                          ),
-                                    );
-
-                                    if (!context.mounted) return;
-
-                                    Navigator.pushReplacement(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            const ChangePasswordScreen(),
-                                      ),
-                                    );
-
-                                    return;
-                                  }
-                                  if (authViewModel.errorMessage == null) {
-                                    print("Login passed");
-                                    Navigator.pushReplacement(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            const HomeScreen(),
-                                      ),
-                                    );
-                                    print("Redirected to home screen");
-                                  } else {
-                                    print("Login failed");
-                                    Fluttertoast.showToast(
-                                      msg: authViewModel.errorMessage!,
-                                    );
-                                  }
-                                }
-                              },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF7C4DFF),
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
+                      const SizedBox(height: 40),
+                      TextFormField(
+                        controller: emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          hintText: 'Email',
+                          hintStyle: const TextStyle(color: Color(0xFFA1A1AA)),
+                          filled: true,
+                          fillColor: const Color(0xFF321A4D),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        child: authViewModel.isLoading
-                            ? const SizedBox(
-                                height: 22,
-                                width: 22,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Text(
-                                "Login",
-                                style: TextStyle(
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Email is required';
+                          }
+
+                          if (!value.contains('@')) {
+                            return 'Enter a valid email';
+                          }
+
+                          return null;
+                        },
                       ),
-                    ),
+                      const SizedBox(height: 10),
+                      TextFormField(
+                        controller: passwordController,
+                        style: const TextStyle(color: Colors.white),
+                        obscureText: obscurePassword,
+                        decoration: InputDecoration(
+                          hintStyle: const TextStyle(color: Color(0xFFA1A1AA)),
+                          hintText: 'Password',
 
-                    const SizedBox(height: 20),
-
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text(
-                          "Don't have an account? ",
-                          style: TextStyle(color: Color(0xFFD1C4E9)),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) {
-                                  return const RegisterScreen();
-                                },
-                              ),
-                            );
-                          },
-                          child: const Text(
-                            "Register",
-                            style: TextStyle(
-                              color: Color(0xFFB388FF),
-                              fontWeight: FontWeight.bold,
+                          filled: true,
+                          fillColor: const Color(0xFF321A4D),
+                          suffixIcon: IconButton(
+                            onPressed: () {
+                              setState(() {
+                                obscurePassword = !obscurePassword;
+                              });
+                            },
+                            icon: Icon(
+                              obscurePassword
+                                  ? Icons.visibility_off_outlined
+                                  : Icons.visibility_outlined,
+                              color: Colors.white,
                             ),
                           ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                         ),
-                      ],
-                    ),
-                  ],
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Password is required';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 45,
+                        child: ElevatedButton(
+                          onPressed: authViewModel.isLoading
+                              ? null
+                              : () async {
+                                  if (formKey.currentState!.validate()) {
+                                    await authViewModel.login(
+                                      emailController.text.trim(),
+                                      passwordController.text,
+                                    );
+                                    if (authViewModel.passwordChangeRequired) {
+                                      await showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) =>
+                                            AlertDialog(
+                                              title: const Text(
+                                                'Urgent action required!',
+                                              ),
+                                              content: const Text(
+                                                'For security reasons, you need to change your password before continuing.',
+                                              ),
+                                              actions: <Widget>[
+                                                TextButton(
+                                                  onPressed: () {
+                                                    Navigator.pop(context);
+                                                  },
+                                                  child: const Text('OK'),
+                                                ),
+                                              ],
+                                            ),
+                                      );
+                                      if (!context.mounted) return;
+                                      Navigator.pushReplacement(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const ChangePasswordScreen(),
+                                        ),
+                                      );
+                                      return;
+                                    }
+                                    if (authViewModel.errorMessage == null) {
+                                      Fluttertoast.showToast(msg: "Logged in");
+                                      Navigator.pushReplacement(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) {
+                                            return const HomeScreen();
+                                          },
+                                        ),
+                                      );
+                                    } else {
+                                      Fluttertoast.showToast(
+                                        msg: authViewModel.errorMessage!,
+                                      );
+                                    }
+                                  }
+                                },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFA855F7),
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: authViewModel.isLoading
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Text(
+                                  'Log in',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 25),
+
+                      Row(
+                        children: [
+                          const Expanded(
+                            child: Divider(color: Color(0xFFDBDBDB)),
+                          ),
+                          const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 15),
+                            child: Text(
+                              'OR',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          const Expanded(
+                            child: Divider(color: Color(0xFFDBDBDB)),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            "Don't have an account? ",
+                            style: TextStyle(color: Colors.grey, fontSize: 14),
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) {
+                                    return const RegisterScreen();
+                                  },
+                                ),
+                              );
+                            },
+                            child: const Text(
+                              'Sign up',
+                              style: TextStyle(
+                                color: Color(0xFFA855F7),
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 40),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

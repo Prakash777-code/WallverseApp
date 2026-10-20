@@ -172,4 +172,18 @@ class WallpaperRepository {
       rethrow;
     }
   }
+
+  Future<ApiResponse> getLikedCommunityWallpaperIds(
+    List<int> wallpaperIds,
+  ) async {
+    try {
+      final res = await wallpaperApiService.getLikedCommunityWallpaperIds(
+        wallpaperIds,
+      );
+      helper.handleRequest(res);
+      return res;
+    } on AppException {
+      rethrow;
+    }
+  }
 }

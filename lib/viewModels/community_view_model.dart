@@ -12,6 +12,8 @@ class CommunityViewModel extends ChangeNotifier {
   bool isLiking = false;
   String? errorMessage;
   List<Community> communityWallpapers = [];
+  Set<int> likedIds = {};
+  Set<int> favouriteIds = {};
   int currentPage = 1;
   int limit = 10;
   int totaPosts = 0;
@@ -25,6 +27,15 @@ class CommunityViewModel extends ChangeNotifier {
       final res = await wallpaperRepository.getCommunityWallpapers(1, limit);
       final communityResponse = res.data as CommunityResponse;
       communityWallpapers = communityResponse.communityWallpapers;
+      final wallpaperIds = communityWallpapers.map((id) => id.id).toList();
+      final favRes = await wallpaperRepository.getFavouriteIds(wallpaperIds);
+      final idRes = await wallpaperRepository.getLikedCommunityWallpaperIds(
+        wallpaperIds,
+      );
+      likedIds = Set<int>.from(idRes.data);
+      favouriteIds = Set<int>.from(favRes.data["data"]);
+      print("FAV IDS IN VIEWMODEL :${favouriteIds}");
+      print("LIKED IDS IN VIEWMODEL :${likedIds}");
       totaPosts = communityResponse.totalPosts;
     } on AppException catch (e) {
       errorMessage = e.toString();
@@ -54,6 +65,13 @@ class CommunityViewModel extends ChangeNotifier {
       );
       final communityResponse = morePosts.data as CommunityResponse;
       communityWallpapers.addAll(communityResponse.communityWallpapers);
+      final wallpaperIds = communityWallpapers.map((id) => id.id).toList();
+      final favRes = await wallpaperRepository.getFavouriteIds(wallpaperIds);
+      final idRes = await wallpaperRepository.getLikedCommunityWallpaperIds(
+        wallpaperIds,
+      );
+      favouriteIds.addAll(Set<int>.from(favRes.data["data"]));
+      likedIds.addAll(Set<int>.from(idRes.data));
       currentPage = nextPage;
     } on AppException catch (e) {
       errorMessage = e.toString();
@@ -73,6 +91,7 @@ class CommunityViewModel extends ChangeNotifier {
     if (clickLoader) {
       return;
     }
+    print("CALLED ADD TO FAVOURITE FROM COMMUNITY VIEW MODEL");
     clickLoader = true;
     errorMessage = null;
     notifyListeners();
@@ -82,6 +101,7 @@ class CommunityViewModel extends ChangeNotifier {
         imageUrl,
         photographer,
       );
+      favouriteIds.add(wallpaperId);
     } on AppException catch (e) {
       errorMessage = e.toString();
     } catch (e) {
@@ -98,6 +118,7 @@ class CommunityViewModel extends ChangeNotifier {
     notifyListeners();
     try {
       await wallpaperRepository.removeFromFavourites(wallpaperId);
+      favouriteIds.remove(wallpaperId);
     } on AppException catch (e) {
       errorMessage = e.toString();
     } catch (e) {
@@ -114,6 +135,7 @@ class CommunityViewModel extends ChangeNotifier {
     notifyListeners();
     try {
       await wallpaperRepository.likePost(postId);
+      likedIds.add(postId);
     } on AppException catch (e) {
       errorMessage = e.toString();
     } catch (e) {
@@ -130,6 +152,7 @@ class CommunityViewModel extends ChangeNotifier {
     notifyListeners();
     try {
       await wallpaperRepository.unlikePost(postId);
+      likedIds.remove(postId);
     } on AppException catch (e) {
       errorMessage = e.toString();
     } catch (e) {
@@ -153,6 +176,14 @@ class CommunityViewModel extends ChangeNotifier {
     } finally {
       clickLoader = false;
       notifyListeners();
+    }
+  }
+
+  void toggleLike(int wallpaperId) {
+    if (likedIds.contains(wallpaperId)) {
+      likedIds.remove(wallpaperId);
+    } else {
+      likedIds.add(wallpaperId);
     }
   }
 }

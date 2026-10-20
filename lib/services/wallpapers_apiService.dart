@@ -87,6 +87,7 @@ class WallpapersApiservice {
         }),
       );
     }
+    print("FAVOURITE API RESPONSE :${response.body}");
     return ApiResponse(
       statusCode: response.statusCode,
       data: jsonDecode(response.body),
@@ -317,6 +318,7 @@ class WallpapersApiservice {
         },
       );
     }
+    print("LIKE API RESPONSE :${res.body}");
     return ApiResponse(
       statusCode: res.statusCode,
       data: (jsonDecode(res.body)),
@@ -376,6 +378,37 @@ class WallpapersApiservice {
     return ApiResponse(
       statusCode: response.statusCode,
       data: jsonDecode(response.body),
+    );
+  }
+
+  Future<ApiResponse> getLikedCommunityWallpaperIds(
+    List<int> wallpaperIds,
+  ) async {
+    var accessToken = await secureStorage.getAccessToken();
+    var response = await http.post(
+      Uri.parse("${baseUrl}/mobile/wallpaper/community/id"),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $accessToken",
+      },
+      body: jsonEncode({"ids": wallpaperIds}),
+    );
+    if (response.statusCode == 401) {
+      accessToken = await authApiService.refreshToken();
+      await secureStorage.saveAccessToken(accessToken);
+      response = await http.post(
+        Uri.parse("${baseUrl}/mobile/wallpaper/community/id"),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $accessToken",
+        },
+        body: jsonEncode({"ids": wallpaperIds}),
+      );
+    }
+    print("GET COMMUNITY WALLPAPER IDS :${response.body}");
+    return ApiResponse(
+      statusCode: response.statusCode,
+      data: jsonDecode(response.body)["data"],
     );
   }
 }

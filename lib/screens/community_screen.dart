@@ -85,7 +85,12 @@ class _CommunityScreenState extends State<CommunityScreen> {
 
               itemBuilder: (context, index) {
                 final wallpaper = communityViewModel.communityWallpapers[index];
-
+                final isLiked = communityViewModel.likedIds.contains(
+                  wallpaper.id,
+                );
+                final isFavourite = communityViewModel.favouriteIds.contains(
+                  wallpaper.id,
+                );
                 return Container(
                   decoration: BoxDecoration(
                     color: const Color(0xFF09090B),
@@ -145,12 +150,18 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                   );
                                 },
                                 onDoubleTap: () async {
-                                  if (!wallpaper.isLiked) {
+                                  if (!isLiked) {
                                     await communityViewModel.likePost(
                                       wallpaper.id,
                                     );
+                                    if (communityViewModel.errorMessage !=
+                                        null) {
+                                      Fluttertoast.showToast(
+                                        msg: communityViewModel.errorMessage!,
+                                      );
+                                      return;
+                                    }
                                     wallpaper.likes++;
-                                    wallpaper.isLiked = true;
                                   } else {
                                     Fluttertoast.showToast(
                                       msg: "Post was already liked",
@@ -221,20 +232,27 @@ class _CommunityScreenState extends State<CommunityScreen> {
                               right: 10,
                               child: GestureDetector(
                                 onTap: () async {
-                                  await communityViewModel.addToFavourite(
-                                    wallpaper.id,
-                                    wallpaper.imageUrl,
-                                    wallpaper.userName,
-                                  );
-                                  wallpaper.isFavourite = true;
-                                  if (communityViewModel.errorMessage == null) {
-                                    Fluttertoast.showToast(
-                                      msg: "Added to favourites",
-                                    );
+                                  if (isFavourite) {
+                                    await communityViewModel
+                                        .removeFromFavourites(wallpaper.id);
+                                    if (communityViewModel.errorMessage !=
+                                        null) {
+                                      Fluttertoast.showToast(
+                                        msg: communityViewModel.errorMessage!,
+                                      );
+                                    }
                                   } else {
-                                    Fluttertoast.showToast(
-                                      msg: communityViewModel.errorMessage!,
+                                    await communityViewModel.addToFavourite(
+                                      wallpaper.id,
+                                      wallpaper.imageUrl,
+                                      wallpaper.userName,
                                     );
+                                    if (communityViewModel.errorMessage !=
+                                        null) {
+                                      Fluttertoast.showToast(
+                                        msg: communityViewModel.errorMessage!,
+                                      );
+                                    }
                                   }
                                 },
                                 child: Container(
@@ -246,10 +264,10 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                   ),
 
                                   child: Icon(
-                                    wallpaper.isFavourite
+                                    isFavourite
                                         ? Icons.bookmark
                                         : Icons.bookmark_border,
-                                    color: wallpaper.isFavourite
+                                    color: isFavourite
                                         ? const Color(0xFFA855F7)
                                         : Colors.white,
                                     size: 20,
@@ -257,6 +275,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                 ),
                               ),
                             ),
+
                             Positioned(
                               left: 10,
                               right: 10,
@@ -264,79 +283,77 @@ class _CommunityScreenState extends State<CommunityScreen> {
                               child: Row(
                                 children: [
                                   Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          wallpaper.userName,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          wallpaper.likes.toString(),
-                                          style: const TextStyle(
-                                            color: Colors.white70,
-                                            fontSize: 11,
-                                          ),
-                                        ),
-                                      ],
+                                    child: Text(
+                                      wallpaper.userName,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
                                   ),
-
-                                  IconButton(
-                                    onPressed: communityViewModel.isLiking
-                                        ? null
-                                        : () async {
-                                            if (wallpaper.isLiked) {
-                                              await communityViewModel
-                                                  .unlikePost(wallpaper.id);
-                                              if (communityViewModel
-                                                      .errorMessage !=
-                                                  null) {
-                                                Fluttertoast.showToast(
-                                                  msg: communityViewModel
-                                                      .errorMessage!,
-                                                );
-                                              }
-                                              wallpaper.likes--;
-                                              wallpaper.isLiked = false;
-                                            } else {
-                                              await communityViewModel.likePost(
-                                                wallpaper.id,
-                                              );
-                                              if (communityViewModel
-                                                      .errorMessage !=
-                                                  null) {
-                                                Fluttertoast.showToast(
-                                                  msg: communityViewModel
-                                                      .errorMessage!,
-                                                );
-                                              }
-                                              wallpaper.likes++;
-                                              wallpaper.isLiked = true;
-                                            }
-                                          },
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(
-                                      minWidth: 35,
-                                      minHeight: 35,
-                                    ),
-                                    icon: Icon(
-                                      wallpaper.isLiked
-                                          ? Icons.favorite
-                                          : Icons.favorite_border,
-                                      color: wallpaper.isLiked
-                                          ? Colors.red
-                                          : Colors.white,
-                                      size: 22,
-                                    ),
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      IconButton(
+                                        onPressed: communityViewModel.isLiking
+                                            ? null
+                                            : () async {
+                                                if (isLiked) {
+                                                  await communityViewModel
+                                                      .unlikePost(wallpaper.id);
+                                                  if (communityViewModel
+                                                          .errorMessage !=
+                                                      null) {
+                                                    Fluttertoast.showToast(
+                                                      msg: communityViewModel
+                                                          .errorMessage!,
+                                                    );
+                                                    return;
+                                                  }
+                                                  if (wallpaper.likes > 0) {
+                                                    wallpaper.likes--;
+                                                  }
+                                                } else {
+                                                  await communityViewModel
+                                                      .likePost(wallpaper.id);
+                                                  if (communityViewModel
+                                                          .errorMessage !=
+                                                      null) {
+                                                    Fluttertoast.showToast(
+                                                      msg: communityViewModel
+                                                          .errorMessage!,
+                                                    );
+                                                    return;
+                                                  }
+                                                  wallpaper.likes++;
+                                                }
+                                              },
+                                        padding: EdgeInsets.zero,
+                                        constraints: const BoxConstraints(
+                                          minWidth: 30,
+                                          minHeight: 35,
+                                        ),
+                                        icon: Icon(
+                                          isLiked
+                                              ? Icons.favorite
+                                              : Icons.favorite_border,
+                                          color: isLiked
+                                              ? Colors.red
+                                              : Colors.white,
+                                          size: 22,
+                                        ),
+                                      ),
+                                      Text(
+                                        wallpaper.likes.toString(),
+                                        style: const TextStyle(
+                                          color: Colors.white70,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),

@@ -334,7 +334,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
 
-                              // BOTTOM GRADIENT + PHOTOGRAPHER
                               Positioned(
                                 left: 0,
                                 right: 0,

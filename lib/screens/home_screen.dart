@@ -33,7 +33,7 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
     print("CALLING DEBOUNCE SEARCH ${query}");
-    homeViewModel.searchWithDebounce(query);
+    homeViewModel.searchWithDebounce(query.isEmpty ? "nature" : query);
   }
 
   @override
@@ -84,7 +84,8 @@ class _HomeScreenState extends State<HomeScreen> {
       margin: const EdgeInsets.only(right: 10),
       child: ElevatedButton(
         onPressed: () {
-          homeViewModel.searchWithDebounce(title.toString().trim());
+          searchController.text = title.toLowerCase();
+          homeViewModel.searchWithDebounce(title.toLowerCase());
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF18181B),

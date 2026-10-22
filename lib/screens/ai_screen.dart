@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:wallverse/screens/full_screen_wallpaper.dart';
 import 'package:wallverse/screens/side_drawer.dart';
+import 'package:wallverse/screens/subscription_popup.dart';
 import 'package:wallverse/viewModels/ai_view_model.dart';
 
 class AiScreen extends StatefulWidget {
@@ -49,20 +50,26 @@ class _AiStudioScreenState extends State<AiScreen> {
       final url = await aiViewModel.generateWallpaper(
         promptController.text.trim(),
       );
-      if (aiViewModel.errorMessage == null) {
+      if (aiViewModel.showSubscriptionPopup) {
+        showDialog(
+          context: context,
+          builder: (context) => const SubscriptionPopup(),
+        );
+      } else if (aiViewModel.errorMessage == null && url.isNotEmpty) {
         setState(() {
           imageUrl = url;
-          generating = false;
         });
       } else {
-        Fluttertoast.showToast(msg: aiViewModel.errorMessage!);
-        loading = false;
-        generating = false;
+        Fluttertoast.showToast(
+          msg: aiViewModel.errorMessage ?? "Failed to generate wallpaper",
+        );
       }
     } finally {
-      setState(() {
-        loading = false;
-      });
+      if (mounted) {
+        setState(() {
+          loading = false;
+        });
+      }
     }
   }
 
@@ -97,10 +104,7 @@ class _AiStudioScreenState extends State<AiScreen> {
                   );
                 },
               ),
-
               const SizedBox(height: 10),
-
-              // Header
               const Text(
                 "Create Something Unique",
                 style: TextStyle(
@@ -138,7 +142,7 @@ class _AiStudioScreenState extends State<AiScreen> {
 
               const SizedBox(height: 28),
 
-              // Prompt Card
+           
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -190,7 +194,7 @@ class _AiStudioScreenState extends State<AiScreen> {
 
                     const SizedBox(height: 8),
 
-                    // Suggestions
+                 
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Wrap(
@@ -304,6 +308,20 @@ class _AiStudioScreenState extends State<AiScreen> {
                         : CachedNetworkImage(
                             imageUrl: imageUrl!,
                             fit: BoxFit.cover,
+                            imageBuilder: (context, imageProvider) {
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                if (mounted && generating) {
+                                  setState(() {
+                                    generating = false;
+                                  });
+                                }
+                              });
+
+                              return Image(
+                                image: imageProvider,
+                                fit: BoxFit.cover,
+                              );
+                            },
                             placeholder: (context, url) => const Center(
                               child: CircularProgressIndicator(
                                 color: Color(0xFFA855F7),
@@ -326,25 +344,32 @@ class _AiStudioScreenState extends State<AiScreen> {
                   children: [
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: () async {
-                          await aiViewModel.addToFavourite(
-                            id,
-                            imageUrl!,
-                            photoGrapher,
-                          );
+                        onPressed: loading || generating
+                            ? null
+                            : () async {
+                                await aiViewModel.addToFavourite(
+                                  id,
+                                  imageUrl!,
+                                  photoGrapher,
+                                );
 
-                          if (aiViewModel.errorMessage == null) {
-                            Fluttertoast.showToast(msg: "Added to favourites");
-                          } else {
-                            Fluttertoast.showToast(
-                              msg: aiViewModel.errorMessage!,
-                            );
-                          }
-                        },
+                                if (aiViewModel.errorMessage == null) {
+                                  Fluttertoast.showToast(
+                                    msg: "Added to favourites",
+                                  );
+                                } else {
+                                  Fluttertoast.showToast(
+                                    msg: aiViewModel.errorMessage!,
+                                  );
+                                }
+                              },
                         icon: const Icon(Icons.favorite_border, size: 19),
                         label: const Text("Favourite"),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: Colors.white,
+                          disabledForegroundColor: Colors.white.withValues(
+                            alpha: 0.4,
+                          ),
                           side: const BorderSide(color: Color(0xFF292929)),
                           padding: const EdgeInsets.symmetric(vertical: 13),
                           shape: RoundedRectangleBorder(
@@ -358,19 +383,25 @@ class _AiStudioScreenState extends State<AiScreen> {
 
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  FullScreenWallpaper(imageUrl: imageUrl!),
-                            ),
-                          );
-                        },
+                        onPressed: loading || generating || imageUrl == null
+                            ? null
+                            : () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => FullScreenWallpaper(
+                                      imageUrl: imageUrl!,
+                                    ),
+                                  ),
+                                );
+                              },
                         icon: const Icon(Icons.open_in_new, size: 18),
                         label: const Text("Open Image"),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: Colors.white,
+                          disabledForegroundColor: Colors.white.withValues(
+                            alpha: 0.4,
+                          ),
                           side: const BorderSide(color: Color(0xFF292929)),
                           padding: const EdgeInsets.symmetric(vertical: 13),
                           shape: RoundedRectangleBorder(

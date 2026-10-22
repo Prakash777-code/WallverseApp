@@ -12,6 +12,7 @@ class WallpaperRepository {
   final wallpaperApiService = WallpapersApiservice();
   final helper = Helper();
   final secureStorage = SecureStorage();
+  static bool isAiGenerationLimitReached = false;
 
   Future<ApiResponse> getWallpapers(String query, int page, int perPage) async {
     try {
@@ -86,6 +87,12 @@ class WallpaperRepository {
   Future<ApiResponse> generateWallpaper(String prompt) async {
     try {
       final response = await wallpaperApiService.generateWallpaper(prompt);
+      if (response.statusCode == 429) {
+        isAiGenerationLimitReached = true;
+        print(isAiGenerationLimitReached);
+      } else {
+        isAiGenerationLimitReached = false;
+      }
       helper.handleRequest(response);
       return response;
     } on AppException {

@@ -124,18 +124,16 @@ class HomeViewmodel extends ChangeNotifier {
 
   Future<void> searchWithDebounce(String query) async {
     print("QUERY IN VIEW MODEL :${query}");
-
     isLoading = true;
     errorMessage = null;
     retry = false;
     currentPage = 1;
+    Query = query;
+    print("SEARCH QUERY: $Query");
     notifyListeners();
     try {
-      final response = await wallpaperRepository.getWallpapers(
-        Query = query,
-        1,
-        limit,
-      );
+      final response = await wallpaperRepository.getWallpapers(query, 1, limit);
+      print("SEARCH RESPONSE: ${response.data}");
       final wallpaperResponse = response.data as WallpaperResponse;
       wallpapers = wallpaperResponse.wallpaper;
       final wallpaperId = wallpapers.map((id) => id.wallpaperId).toList();

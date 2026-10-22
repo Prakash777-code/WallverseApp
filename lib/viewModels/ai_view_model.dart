@@ -4,6 +4,7 @@ import 'package:wallverse/repositories/wallpaper_repository.dart';
 
 class AiViewModel extends ChangeNotifier {
   final wallpaperRepository = WallpaperRepository();
+  bool showSubscriptionPopup = false;
   bool isLoading = false;
   String? errorMessage;
 
@@ -23,21 +24,32 @@ class AiViewModel extends ChangeNotifier {
     } catch (e) {
       errorMessage = e.toString();
     } finally {
+      showSubscriptionPopup = WallpaperRepository.isAiGenerationLimitReached;
+      print("Subs");
+      print(showSubscriptionPopup);
       isLoading = false;
       notifyListeners();
     }
     return errorMessage = "Failed to generate wallpaper";
   }
 
-  Future<void> addToFavourite(int wallpaperId, String imageUrl, String photographer) async {
+  Future<void> addToFavourite(
+    int wallpaperId,
+    String imageUrl,
+    String photographer,
+  ) async {
     isLoading = true;
     errorMessage = null;
     notifyListeners();
-    try{
-      await wallpaperRepository.addToFavourites(wallpaperId, imageUrl, photographer);
-    } on AppException catch(e){
+    try {
+      await wallpaperRepository.addToFavourites(
+        wallpaperId,
+        imageUrl,
+        photographer,
+      );
+    } on AppException catch (e) {
       errorMessage = e.toString();
-    } catch(e){
+    } catch (e) {
       errorMessage = e.toString();
     } finally {
       isLoading = false;

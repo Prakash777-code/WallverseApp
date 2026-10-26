@@ -84,6 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
       margin: const EdgeInsets.only(right: 10),
       child: ElevatedButton(
         onPressed: () {
+          print("FILTER BUTTON QUERY :${title}");
           searchController.text = title.toLowerCase();
           homeViewModel.searchWithDebounce(title.toLowerCase());
         },

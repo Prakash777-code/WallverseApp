@@ -7,7 +7,7 @@ import 'package:wallverse/services/auth_api_service.dart';
 import 'package:wallverse/services/secure_storage.dart';
 
 class NotificationApiService {
-  final String baseUrl = "http://172.20.10.2:3001";
+  final String baseUrl = "https://wallverse-backend-q00l.onrender.com";
   final authApiService = AuthApiService();
   final secureStorage = SecureStorage();
 

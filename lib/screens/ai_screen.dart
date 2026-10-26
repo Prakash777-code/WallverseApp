@@ -142,7 +142,6 @@ class _AiStudioScreenState extends State<AiScreen> {
 
               const SizedBox(height: 28),
 
-           
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -194,7 +193,6 @@ class _AiStudioScreenState extends State<AiScreen> {
 
                     const SizedBox(height: 8),
 
-                 
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Wrap(

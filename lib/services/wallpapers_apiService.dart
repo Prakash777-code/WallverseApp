@@ -12,7 +12,7 @@ import 'package:wallverse/services/auth_api_service.dart';
 import 'package:wallverse/services/secure_storage.dart';
 
 class WallpapersApiservice {
-  final baseUrl = "http://172.20.10.2:3001";
+  final baseUrl = "https://wallverse-backend-q00l.onrender.com";
   //https://wallverse-backend-q00l.onrender.com
   final authApiService = AuthApiService();
   final secureStorage = SecureStorage();

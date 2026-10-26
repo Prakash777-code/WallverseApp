@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:wallverse/services/secure_storage.dart';
 
 class AuthApiService {
-  final baseUrl = "http://172.20.10.2:3001";
+  final baseUrl = "https://wallverse-backend-q00l.onrender.com";
   //http://172.20.10.2:3001
   final secureStorage = SecureStorage();
 
